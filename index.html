@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Контр-Культура</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@400;700&family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --accent: #000000;
+            --bg-color: #ebebeb;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bg-color);
+            color: var(--accent);
+            overflow-x: hidden;
+            margin: 0;
+            padding: 0;
+        }
+
+        .heading-font {
+            font-family: 'Unbounded', sans-serif;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: -0.02em;
+        }
+
+        .fade-in {
+            animation: fadeIn 1.2s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .quote-border {
+            border-left: 2px solid #d1d1d1;
+            padding-left: 1.5rem;
+        }
+
+        .btn-action {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 1rem 1.5rem;
+            background: var(--accent);
+            color: white;
+            font-weight: 600;
+            font-size: 0.875rem;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            transition: all 0.3s ease;
+            border: 1px solid var(--accent);
+            text-decoration: none;
+        }
+
+        .btn-action:hover {
+            background: #222;
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+        }
+
+        .btn-outline {
+            background: transparent;
+            color: var(--accent);
+        }
+
+        .btn-outline:hover {
+            background: var(--accent);
+            color: #ebebeb;
+        }
+
+        .image-container {
+            width: 100%;
+            height: 100%;
+            position: relative;
+        }
+
+        .main-image {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transition: transform 0.8s cubic-bezier(0.22, 1, 0.36, 1);
+        }
+
+        .image-container:hover .main-image {
+            transform: scale(1.03);
+        }
+
+        @media (max-width: 768px) {
+            .quote-border {
+                padding-left: 1rem;
+            }
+            .btn-action {
+                padding: 1.2rem 1.5rem; 
+            }
+            .heading-font {
+                font-size: 3rem;
+                line-height: 1.1;
+            }
+            .mobile-stack {
+                display: flex;
+                flex-direction: column;
+            }
+            .order-img { order: 1; }
+            .order-txt { order: 2; }
+        }
+    </style>
+</head>
+<body>
+
+    <main class="min-h-screen flex flex-col md:flex-row items-stretch relative mobile-stack">
+        
+        <section class="w-full md:w-1/2 flex flex-col justify-center py-12 md:py-16 px-6 md:px-16 lg:px-24 z-10 order-txt">
+            <div class="fade-in">
+                <h1 class="heading-font text-5xl md:text-6xl lg:text-7xl mb-6 leading-[1.1] text-black">
+                    Контр-<br>Культура
+                </h1>
+                
+                <div class="quote-border mt-8">
+                    <p class="text-lg md:text-xl font-light text-neutral-600 italic leading-relaxed max-w-lg">
+                        «Цель проекта в постоянном обучении и продвижении корректного обращения с информацией»
+                    </p>
+                </div>
+                
+                <div class="mt-12 grid grid-cols-1 sm:grid-cols-2 gap-4 max-w-xl">
+                    <a href="https://t.me/+4R0zClJviUgyYzg0" target="_blank" class="btn-action">
+                        Канал Telegram
+                    </a>
+                    <a href="https://t.me/+CrjejnyPpfplNjYy" target="_blank" class="btn-action btn-outline">
+                        Чат проекта
+                    </a>
+                    <a href="https://counterprice.live/" target="_blank" class="btn-action btn-outline">
+                        Прайс-лист
+                    </a>
+                    <a href="https://t.me/+ATsYwAUKJVU5ZDgy" target="_blank" class="btn-action btn-outline">
+                        Отзывы
+                    </a>
+                    <a href="https://t.me/send?start=SBPc-xqn6JrChhZTNi" target="_blank" class="btn-action btn-outline sm:col-span-2">
+                        Личный архив
+                    </a>
+                </div>
+            </div>
+
+            <div class="mt-16 md:hidden text-[9px] uppercase tracking-[0.4em] text-neutral-400">
+                [ COUNTER-CULTURE // DATA INTEGRITY ] &copy; 2026
+            </div>
+        </section>
+
+        <section class="w-full md:w-1/2 h-[40vh] md:h-auto overflow-hidden order-img">
+            <div class="image-container h-full">
+                <img 
+                    src="logo.png" 
+                    alt="Контр-Культура Лого" 
+                    class="main-image"
+                    onerror="this.style.display='none'; this.parentElement.innerHTML='<div class=\'flex items-center justify-center h-full bg-neutral-200 uppercase tracking-widest text-neutral-400\'>Logo Placeholder</div>'"
+                >
+            </div>
+        </section>
+
+    </main>
+
+    <footer class="hidden md:block fixed bottom-8 left-8 md:left-16 text-[10px] uppercase tracking-[0.5em] text-neutral-400">
+        [ COUNTER-CULTURE // DATA INTEGRITY ] &copy; 2026
+    </footer>
+
+</body>
+</html>
