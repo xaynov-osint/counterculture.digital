@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Enterprise Admin Control Panel v2.4.1</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body {
+            background: #d1d5db;
+            background-image: linear-gradient(180deg, #f3f4f6 0%, #9ca3af 100%);
+            height: 100vh;
+            font-family: "Tahoma", "Geneva", sans-serif;
+            overflow: hidden;
+        }
+
+        .glass-header {
+            background: linear-gradient(to bottom, #4a5568 0%, #2d3748 100%);
+            border-bottom: 2px solid #1a202c;
+        }
+
+        .login-box {
+            background: #ffffff;
+            border: 1px solid #a0aec0;
+            border-radius: 8px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
+            transition: all 0.3s ease;
+        }
+
+        .login-header {
+            background: linear-gradient(to bottom, #ebf4ff 0%, #bee3f8 100%);
+            border-bottom: 1px solid #a3bffa;
+            border-top-left-radius: 8px;
+            border-top-right-radius: 8px;
+            padding: 10px 15px;
+            font-weight: bold;
+            color: #2c5282;
+            text-shadow: 1px 1px 0px #fff;
+        }
+
+        input {
+            border: 1px solid #cbd5e0;
+            box-shadow: inset 0 1px 3px rgba(0,0,0,0.1);
+        }
+
+        .btn-shiny {
+            background: linear-gradient(to bottom, #4299e1 0%, #3182ce 100%);
+            border: 1px solid #2b6cb0;
+            color: white;
+            text-shadow: 0 1px 2px rgba(0,0,0,0.3);
+            cursor: pointer;
+        }
+
+        .btn-shiny:hover {
+            background: linear-gradient(to bottom, #63b3ed 0%, #4299e1 100%);
+        }
+
+        .btn-shiny:disabled {
+            opacity: 0.7;
+            cursor: not-allowed;
+        }
+
+        .insult-screen {
+            display: none;
+            text-align: center;
+            padding: 40px 20px;
+            animation: fadeIn 0.3s ease-in;
+        }
+
+        .insult-text {
+            color: #c53030;
+            font-size: 24px;
+            font-weight: 900;
+            text-transform: uppercase;
+            margin-bottom: 15px;
+            line-height: 1.2;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: scale(0.9); }
+            to { opacity: 1; transform: scale(1); }
+        }
+
+        .footer-text {
+            font-size: 11px;
+            color: #718096;
+            margin-top: 20px;
+        }
+
+        #loader {
+            display: none;
+            font-size: 12px;
+            color: #4a5568;
+            margin-bottom: 10px;
+        }
+
+        .ip-info {
+            background: #f7fafc;
+            border: 1px dashed #cbd5e0;
+            padding: 10px;
+            margin-top: 15px;
+            border-radius: 4px;
+            font-size: 13px;
+        }
+    </style>
+</head>
+<body class="flex flex-col items-center justify-center">
+
+    <div class="fixed top-0 w-full glass-header p-2 flex items-center px-6">
+        <div class="text-white font-bold tracking-tight italic">
+            <span class="text-blue-400">CORE</span>-Admin
+        </div>
+        <div class="ml-auto text-gray-400 text-xs">Build: 09.2012.v2</div>
+    </div>
+
+    <div class="login-box w-full max-w-sm" id="mainContainer">
+        <div class="login-header flex items-center" id="boxHeader">
+            <svg class="w-4 h-4 mr-2" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clip-rule="evenodd"></path></svg>
+            Системная авторизация
+        </div>
+        
+        <div class="p-6" id="loginContent">
+            <div id="loader">Выполняется дешифровка и трассировка...</div>
+            <form id="loginForm" onsubmit="handleLogin(event)">
+                <div class="mb-4">
+                    <label class="block text-gray-700 text-xs font-bold mb-1 uppercase text-left">Логин</label>
+                    <input type="text" id="username" class="w-full px-3 py-2 rounded focus:outline-none focus:ring-2 focus:ring-blue-300" placeholder="admin">
+                </div>
+                <div class="mb-6">
+                    <label class="block text-gray-700 text-xs font-bold mb-1 uppercase text-left">Пароль</label>
+                    <input type="password" id="password" class="w-full px-3 py-2 rounded focus:outline-none focus:ring-2 focus:ring-blue-300" placeholder="••••••••">
+                </div>
+                
+                <button type="submit" id="submitBtn" class="btn-shiny w-full py-2 rounded font-bold uppercase text-sm tracking-wider">
+                    Войти
+                </button>
+            </form>
+        </div>
+
+        <div id="insultScreen" class="insult-screen">
+            <div class="insult-text">
+                ТЫ ТУПАЯ ОБЕЗЬЯНА, <br> А НЕ ПЕНТЕСТЕР
+            </div>
+            
+            <div class="ip-info">
+                <div class="text-gray-600 mb-1">Данные злоумышленника:</div>
+                <div class="text-red-600 font-bold text-lg" id="userIp">Определяем IP...</div>
+                <div class="text-gray-500 text-xs italic" id="userLocation">Локация уточняется...</div>
+            </div>
+
+            <div class="mt-4 text-gray-400 font-bold tracking-widest">XD</div>
+
+            <button onclick="location.reload()" class="mt-6 text-blue-600 underline text-xs hover:text-blue-800">
+                Вернуться к авторизации
+            </button>
+        </div>
+    </div>
+
+    <div class="footer-text">
+        &copy; 2008-2012 CyberShield Systems Inc. Защищено Sentinel-X.
+    </div>
+
+    <script>
+        async function handleLogin(e) {
+            e.preventDefault();
+            
+            const loginContent = document.getElementById('loginContent');
+            const insultScreen = document.getElementById('insultScreen');
+            const boxHeader = document.getElementById('boxHeader');
+            const mainContainer = document.getElementById('mainContainer');
+            const loader = document.getElementById('loader');
+            const submitBtn = document.getElementById('submitBtn');
+            const ipSpan = document.getElementById('userIp');
+            const locationSpan = document.getElementById('userLocation');
+
+            submitBtn.disabled = true;
+            loader.style.display = 'block';
+            
+            let realIp = "Не определен";
+            
+            try {
+                // Попытка получить данные об IP и городе
+                const ipRes = await fetch('https://ipapi.co/json/');
+                if (ipRes.ok) {
+                    const data = await ipRes.json();
+                    realIp = data.ip || "Не определен";
+                    locationSpan.innerText = `${data.city || 'Неизвестный город'}, ${data.country_name || 'Неизвестная страна'}`;
+                } else {
+                    throw new Error("API error");
+                }
+            } catch (err) {
+                try {
+                    // Резервный канал только для IP
+                    const backupRes = await fetch('https://api.ipify.org?format=json');
+                    const backupData = await backupRes.json();
+                    realIp = backupData.ip;
+                    locationSpan.innerText = "Геолокация недоступна";
+                } catch (err2) {
+                    realIp = "Ошибка сети";
+                }
+            }
+
+            ipSpan.innerText = realIp;
+
+            // Задержка для драматического эффекта "взлома"
+            setTimeout(() => {
+                loginContent.style.display = 'none';
+                boxHeader.style.background = 'linear-gradient(to bottom, #fff5f5 0%, #feb2b2 100%)';
+                boxHeader.style.color = '#c53030';
+                boxHeader.style.borderBottom = '1px solid #fc8181';
+                boxHeader.innerText = 'ОБНАРУЖЕНО ВТОРЖЕНИЕ';
+                insultScreen.style.display = 'block';
+                mainContainer.style.borderColor = '#fc8181';
+            }, 1000);
+        }
+    </script>
+</body>
+</html>
