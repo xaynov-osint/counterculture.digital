@@ -3,68 +3,130 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>counterculture price</title>
+    <title>Контр-Культура — ПрайсЛист</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@400;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf_viewer.min.css">
     <style>
-        body { font-family: sans-serif; background-color: #f4f4f4; margin: 0; padding: 20px; display: flex; flex-direction: column; align-items: center; }
-        #pdf-container { 
-            box-shadow: 0 5px 15px rgba(0,0,0,0.3); 
-            background-color: #fff; 
-            max-width: 900px; 
-            width: 100%;
-            overflow: auto;
-            border-radius: 4px;
+        :root {
+            --bg-color: #ffffff;
+            --text-color: #1a1a1a;
         }
-        canvas { display: block; margin: 0 auto 10px; width: 100%; height: auto; }
-        .controls { margin-bottom: 15px; background: #fff; padding: 10px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
+        body {
+            background-color: #f3f4f6;
+            color: var(--text-color);
+            margin: 0;
+            padding: 0;
+        }
+        .page-wrapper {
+            position: relative;
+            background: white;
+            margin: 2rem auto;
+            max-width: 900px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+            overflow: hidden;
+        }
+        .textLayer {
+            opacity: 1;
+            mix-blend-mode: multiply;
+        }
+        canvas {
+            display: block;
+            width: 100% !important;
+            height: auto !important;
+        }
+        .header-site {
+            background: #000;
+            color: #fff;
+            padding: 1.5rem;
+            text-align: center;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+        .unbounded-font {
+            font-family: 'Unbounded', sans-serif;
+        }
+        #loading-screen {
+            position: fixed;
+            inset: 0;
+            background: white;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
     </style>
 </head>
 <body>
 
-    <div class="controls">
-        <span>Документ: <b>Инструкция.pdf</b></span>
+    <header class="header-site">
+        <h1 class="text-2xl font-bold tracking-widest uppercase unbounded-font">Контр-Культура</h1>
+        <p class="text-gray-400 text-sm mt-1">Прайс-лист</p>
+    </header>
+
+    <div id="loading-screen">
+        <div class="text-center">
+            <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-black mx-auto"></div>
+            <p class="mt-4 text-gray-600">Преобразование документа в веб-страницу...</p>
+        </div>
     </div>
 
-    <div id="pdf-container"></div>
-
-    <script src="https://cloudflare.com"></script>
+    <main id="main-content" class="pb-20"></main>
 
     <script>
-        const url = 'https://gitub.com/xaynov-osint/7e8ea0bf_78fc_4dd5_994b_d16210e45013_Услуги_проекта_Контр_Культура.pdf';
+        const url = 'https://raw.githubusercontent.com/xaynov-osint/counterculture.digital/main/7e8ea0bf_78fc_4dd5_994b_d16210e45013_Услуги_проекта_Контр_Культура.pdf';
+        pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
 
-        pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cloudflare.com';
+        async function initWebPDF() {
+            try {
+                const loadingTask = pdfjsLib.getDocument(url);
+                const pdf = await loadingTask.promise;
+                const container = document.getElementById('main-content');
 
-        const container = document.getElementById('pdf-container');
+                for (let i = 1; i <= pdf.numPages; i++) {
+                    const page = await pdf.getPage(i);
+                    
+                    const section = document.createElement('section');
+                    section.className = 'page-wrapper';
+                    container.appendChild(section);
 
-        pdfjsLib.getDocument(url).promise.then(pdf => {
-            console.log('PDF загружен, страниц:', pdf.numPages);
-            
-            for (let pageNum = 1; pageNum <= pdf.numPages; pageNum++) {
-                renderPage(pdf, pageNum);
+                    const viewport = page.getViewport({ scale: 1.5 });
+                    
+                    const canvas = document.createElement('canvas');
+                    const context = canvas.getContext('2d');
+                    canvas.height = viewport.height;
+                    canvas.width = viewport.width;
+                    section.appendChild(canvas);
+
+                    const textLayerDiv = document.createElement('div');
+                    textLayerDiv.className = 'textLayer';
+                    textLayerDiv.style.width = viewport.width + 'px';
+                    textLayerDiv.style.height = viewport.height + 'px';
+                    section.appendChild(textLayerDiv);
+
+                    await page.render({ canvasContext: context, viewport: viewport }).promise;
+
+                    const textContent = await page.getTextContent();
+                    pdfjsLib.renderTextLayer({
+                        textContent: textContent,
+                        container: textLayerDiv,
+                        viewport: viewport,
+                        textDivs: []
+                    });
+                }
+                
+                document.getElementById('loading-screen').style.display = 'none';
+            } catch (err) {
+                console.error(err);
+                document.body.innerHTML = '<div class="p-10 text-center">Ошибка загрузки контента. Проверьте CORS или путь.</div>';
             }
-        }).catch(err => {
-            console.error('Ошибка загрузки:', err);
-            container.innerHTML = '<p style="color:red">Ошибка загрузки файла. Проверьте путь или настройки CORS.</p>';
-        });
-
-        function renderPage(pdf, pageNum) {
-            pdf.getPage(pageNum).then(page => {
-                const scale = 1.5;
-                const viewport = page.getViewport({ scale: scale });
-
-                const canvas = document.createElement('canvas');
-                const context = canvas.getContext('2d');
-                canvas.height = viewport.height;
-                canvas.width = viewport.width;
-
-                container.appendChild(canvas);
-
-                const renderContext = {
-                    canvasContext: context,
-                    viewport: viewport
-                };
-                page.render(renderContext);
-            });
         }
+
+        window.onload = initWebPDF;
     </script>
 </body>
 </html>
