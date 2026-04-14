@@ -3,59 +3,49 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Контр-Культура — Прайс-лист</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <title>Контр-Культура — Прайс-Лист</title>
     <link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@400;700&display=swap" rel="stylesheet">
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf_viewer.min.css">
     <style>
-        :root {
-            --bg-color: #f3f4f6;
-            --text-color: #1a1a1a;
-        }
-        body {
-            background-color: var(--bg-color);
-            color: var(--text-color);
-            margin: 0;
-            padding: 0;
-        }
-        .page-wrapper {
-            position: relative; 
-            background: white;
-            margin: 2rem auto;
-            max-width: 1000px; 
-            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
-            line-height: 1.0; 
-        }
+        :root { --bg-color: #f3f4f6; }
+        body { background-color: var(--bg-color); margin: 0; }
         
+        .page-wrapper {
+            position: relative;
+            margin: 2rem auto;
+            max-width: 900px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+            background: white;
+            /* Убираем любые лишние отступы, которые могут сместить слои */
+            line-height: 0; 
+        }
+
+        /* Настройка текстового слоя поверх канваса */
         .textLayer {
             position: absolute;
             top: 0;
             left: 0;
             right: 0;
             bottom: 0;
-            overflow: hidden;
-            opacity: 0.2; 
             line-height: 1.0;
-            mix-blend-mode: multiply;
+            opacity: 1;
+            /* Это заставит выделение четко ложиться на буквы */
+            mix-blend-mode: multiply; 
         }
 
-        .textLayer span {
-            color: transparent;
-            position: absolute;
-            white-space: pre;
-            cursor: text;
-            transform-origin: 0% 0%;
+        /* Скрываем стандартные маркеры PDF.js, оставляя только системное выделение */
+        .textLayer ::selection {
+            background: rgba(0, 0, 255, 0.2);
         }
 
         canvas {
             display: block;
-            width: 100% !important; 
+            width: 100% !important;
             height: auto !important;
         }
-        
+
         #loading-screen {
             position: fixed;
             inset: 0;
@@ -72,11 +62,11 @@
     <div id="loading-screen">
         <div class="text-center">
             <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-black mx-auto"></div>
-            <p class="mt-4 text-gray-600 font-['Unbounded']">adapterofcounter.t.me -> counterculture.digital/price</p>
+            <p class="mt-4 text-gray-600">adapterofcounter.t.me -> counterculture.digital/price</p>
         </div>
     </div>
 
-    <main id="main-content" class="p-4 pb-20"></main>
+    <main id="main-content" class="pb-20"></main>
 
     <script>
         const url = 'https://raw.githubusercontent.com/xaynov-osint/counterculture.digital/main/7e8ea0bf_78fc_4dd5_994b_d16210e45013_Услуги_проекта_Контр_Культура.pdf';
@@ -91,47 +81,58 @@
                 for (let i = 1; i <= pdf.numPages; i++) {
                     const page = await pdf.getPage(i);
                     
-                    const wrapperWidth = Math.min(window.innerWidth - 40, 1000);
-                    const unscaledViewport = page.getViewport({ scale: 1 });
-                    const scale = wrapperWidth / unscaledViewport.width;
-                    const viewport = page.getViewport({ scale: scale * 2 }); 
+                    // 1. Берем базовый вьюпорт для расчетов
+                    const baseViewport = page.getViewport({ scale: 1.0 });
+                    
+                    // 2. Рассчитываем масштаб относительно ширины контейнера (900px)
+                    const containerWidth = 900;
+                    const scale = containerWidth / baseViewport.width;
+                    const viewport = page.getViewport({ scale: scale });
 
                     const section = document.createElement('section');
                     section.className = 'page-wrapper';
-                    section.style.width = (viewport.width / 2) + 'px'; 
-                    section.style.height = (viewport.height / 2) + 'px';
+                    // Явно задаем размеры контейнера в пикселях
+                    section.style.width = viewport.width + 'px';
+                    section.style.height = viewport.height + 'px';
                     container.appendChild(section);
 
+                    // 3. Рисуем картинку (Canvas) в высоком разрешении для четкости
                     const canvas = document.createElement('canvas');
                     const context = canvas.getContext('2d');
-                    canvas.height = viewport.height;
-                    canvas.width = viewport.width;
+                    const outputScale = window.devicePixelRatio || 1;
+                    
+                    canvas.width = Math.floor(viewport.width * outputScale);
+                    canvas.height = Math.floor(viewport.height * outputScale);
+                    canvas.style.width = viewport.width + "px";
+                    canvas.style.height = viewport.height + "px";
+
+                    const renderContext = {
+                        canvasContext: context,
+                        viewport: page.getViewport({ scale: scale * outputScale }),
+                    };
+                    await page.render(renderContext).promise;
                     section.appendChild(canvas);
 
+                    // 4. Накладываем текстовый слой
                     const textLayerDiv = document.createElement('div');
                     textLayerDiv.className = 'textLayer';
                     section.appendChild(textLayerDiv);
 
-                    await page.render({ 
-                        canvasContext: context, 
-                        viewport: viewport 
-                    }).promise;
-
                     const textContent = await page.getTextContent();
-                    const textViewport = page.getViewport({ scale: scale }); 
                     
-                    pdfjsLib.renderTextLayer({
+                    // Важно: рендерим текстовый слой СТРОГО в том же масштабе, что и viewport контейнера
+                    await pdfjsLib.renderTextLayer({
                         textContent: textContent,
                         container: textLayerDiv,
-                        viewport: textViewport,
+                        viewport: viewport,
                         enhanceTextSelection: true
-                    });
+                    }).promise;
                 }
                 
                 document.getElementById('loading-screen').style.display = 'none';
             } catch (err) {
                 console.error(err);
-                document.body.innerHTML = '<div class="p-10 text-center">Ошибка загрузки. Проверьте CORS.</div>';
+                document.body.innerHTML = '<div class="p-10 text-center">Ошибка. Проверьте CORS.</div>';
             }
         }
 
