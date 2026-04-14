@@ -18,11 +18,9 @@
             max-width: 900px;
             box-shadow: 0 4px 20px rgba(0,0,0,0.1);
             background: white;
-            /* Убираем любые лишние отступы, которые могут сместить слои */
             line-height: 0; 
         }
 
-        /* Настройка текстового слоя поверх канваса */
         .textLayer {
             position: absolute;
             top: 0;
@@ -31,13 +29,21 @@
             bottom: 0;
             line-height: 1.0;
             opacity: 1;
-            /* Это заставит выделение четко ложиться на буквы */
-            mix-blend-mode: multiply; 
         }
 
-        /* Скрываем стандартные маркеры PDF.js, оставляя только системное выделение */
+        /* Делаем текст полностью прозрачным, чтобы его нельзя было выделить визуально, но можно было скопировать */
+        .textLayer span {
+            color: transparent !important;
+            cursor: default;
+        }
+
+        /* Убираем фоновый цвет выделения */
         .textLayer ::selection {
-            background: rgba(0, 0, 255, 0.2);
+            background: transparent;
+        }
+        
+        .textLayer ::-moz-selection {
+            background: transparent;
         }
 
         canvas {
@@ -81,22 +87,17 @@
                 for (let i = 1; i <= pdf.numPages; i++) {
                     const page = await pdf.getPage(i);
                     
-                    // 1. Берем базовый вьюпорт для расчетов
                     const baseViewport = page.getViewport({ scale: 1.0 });
-                    
-                    // 2. Рассчитываем масштаб относительно ширины контейнера (900px)
                     const containerWidth = 900;
                     const scale = containerWidth / baseViewport.width;
                     const viewport = page.getViewport({ scale: scale });
 
                     const section = document.createElement('section');
                     section.className = 'page-wrapper';
-                    // Явно задаем размеры контейнера в пикселях
                     section.style.width = viewport.width + 'px';
                     section.style.height = viewport.height + 'px';
                     container.appendChild(section);
 
-                    // 3. Рисуем картинку (Canvas) в высоком разрешении для четкости
                     const canvas = document.createElement('canvas');
                     const context = canvas.getContext('2d');
                     const outputScale = window.devicePixelRatio || 1;
@@ -113,14 +114,12 @@
                     await page.render(renderContext).promise;
                     section.appendChild(canvas);
 
-                    // 4. Накладываем текстовый слой
                     const textLayerDiv = document.createElement('div');
                     textLayerDiv.className = 'textLayer';
                     section.appendChild(textLayerDiv);
 
                     const textContent = await page.getTextContent();
                     
-                    // Важно: рендерим текстовый слой СТРОГО в том же масштабе, что и viewport контейнера
                     await pdfjsLib.renderTextLayer({
                         textContent: textContent,
                         container: textLayerDiv,
